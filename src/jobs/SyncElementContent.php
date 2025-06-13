@@ -79,7 +79,11 @@ class SyncElementContent extends BaseJob
                 $variantFields = [];
 
                 foreach ($sourceElement->getVariants() as $variant) {
-                    $variantFields[$variant->id] = $variant->getFieldValues();
+                    $variantFields[$variant->id]['custom_fields'] = $variant->getFieldValues();
+                    
+                    if (in_array('title', $this->attributesToCopy)) {
+                        $variantFields[$variant->id]['title'] = $variant->title;
+                    }
                 }
 
                 $tmp = $variantFields;
@@ -111,7 +115,11 @@ class SyncElementContent extends BaseJob
                         $variant = craft\commerce\elements\Variant::find()->id($variantId)->siteId($siteId)->one();
 
                         if ($variant) {
-                            $variant->setFieldValues($value);
+                            $variant->setFieldValues($value['custom_fields']);
+
+                            if (isset($value['title'])) {
+                                $variant->title = $value['title'];
+                            }
 
                             $variant->setScenario(Element::SCENARIO_ESSENTIALS);
                             Craft::$app->getElements()->saveElement($variant);
